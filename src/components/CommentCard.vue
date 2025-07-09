@@ -130,7 +130,7 @@ const handleReplyDelete = (replyId: number) => {
         name="fade-slide"
         appear
     >
-      <AddComment v-if="showReplyForm && currentUser" :currentUser="currentUser"
+      <AddComment v-if="showReplyForm && currentUser" :currentUser="currentUser" @close="showReplyForm = false"
                   :replying-to="user.username" :is-reply-form="true" @submit="addReply"/>
     </Transition>
   </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, onMounted, nextTick} from 'vue'
+import {ref, onMounted, nextTick, computed} from 'vue'
 import type {Comment, Reply, User} from '../types'
 
 interface Props {
@@ -15,6 +15,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: 'submit', comment: Comment | Reply): void
+  (e: 'close'): void
 }>()
 
 function getUserImgUrl(username: string) {
@@ -46,13 +47,12 @@ const formatTimeAgo = (date: Date): string => {
 
 const sendComment = () => {
   let content = newComment.value?.trim();
-
   // Remove the @username from content if it's a reply form, since it will be displayed separately
-  if (props.isReplyForm && content.startsWith(`@${props.replyingTo} `)) {
-    content = content.replace(`@${props.replyingTo} `, '').trim();
+  if (props.isReplyForm && content.startsWith(`@${props.replyingTo}`)) {
+    content = content.replace(`@${props.replyingTo}`, '').trim();
   }
 
-
+  if (!content) return;
   const base = {
     id: Date.now() + Math.floor(Math.random() * 1000),
     content: content,
@@ -67,26 +67,67 @@ const sendComment = () => {
     }
   };
 
-  const comment = props.isReplyForm
-      ? {
-        ...base,
-        replyingTo: props.replyingTo
-      } satisfies Reply
-      : {
-          ...base,
-        replies: []
-      } satisfies Comment;
-
-  if (newComment.value.trim()) {
-    emit('submit', comment)
-    newComment.value = ""
+  if (props.isReplyForm) {
+    const reply: Reply = {
+      ...base,
+      replyingTo: props.replyingTo
+    };
+    emit('submit', reply);
+  } else {
+    const comment: Comment = {
+      ...base,
+      replies: []
+    };
+    emit('submit', comment);
   }
+
+  newComment.value = "";
 }
 
+// Computed property to check if content is valid
+const isContentValid = computed(() => {
+  if (!newComment.value) return false;
+
+  let content = newComment.value.trim();
+
+  // Remove the @username from content if it's a reply form
+  if (props.isReplyForm && props.replyingTo && content.startsWith(`@${props.replyingTo}`)) {
+    content = content.replace(`@${props.replyingTo}`, '').trim();
+  }
+
+  return content.length > 0;
+});
+
+const isRotating = ref(false);
+
+const closeReplyForm = () => {
+  isRotating.value = true;
+
+  setTimeout(() => {
+    isRotating.value = false;
+    emit('close'); // or whatever closes the form
+  }, 100); // match duration with animation
+};
 </script>
 
 <template>
-  <div class="md:flex items-start gap-x-4 bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 my-2">
+  <div class="relative md:flex items-start gap-x-4 bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 my-2">
+    <button
+        v-if="isReplyForm"
+        @click="closeReplyForm"
+        class="absolute top-2 right-2 text-grey-500 hover:text-grey-800 hover:bg-grey-100 rounded-full p-1 transition-colors"
+        aria-label="Close reply form"
+    >
+      <svg
+          class="w-5 h-5 transition-transform duration-100"
+          :class="{ 'rotate-180': isRotating }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
     <textarea
         ref="textareaRef"
         v-model="newComment"
@@ -109,7 +150,7 @@ const sendComment = () => {
       ></textarea>
       <button
           class="p-2 md:px-5 bg-purple-600 text-xs md:text-base font-medium md:font-semibold text-uppercase text-white rounded-lg hover:opacity-40 disabled:opacity-40 uppercase"
-          :disabled="newComment === ''"
+          :disabled="!isContentValid"
           @click="sendComment">
         <span v-if="isReplyForm">Reply</span>
         <span v-else>Send</span>

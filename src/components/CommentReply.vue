@@ -228,7 +228,7 @@ const editReply = () => {
         name="fade-slide"
         appear
     >
-      <AddComment v-if="showReplyForm && currentUser" :currentUser="currentUser"
+      <AddComment v-if="showReplyForm && currentUser" :currentUser="currentUser" @close="showReplyForm = false"
                   :replying-to="reply.user.username" :is-reply-form="true" @submit="handleReplyToReply"/>
     </Transition>
   </div>
