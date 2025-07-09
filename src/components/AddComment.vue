@@ -8,8 +8,6 @@ interface Props {
   replyingTo?: string
 }
 
-// const props = defineProps<Props>()
-
 const props = withDefaults(defineProps<Props>(), {
   isReplyForm: false,
   replyingTo: ''
@@ -19,9 +17,9 @@ const emit = defineEmits<{
   (e: 'submit', comment: Comment | Reply): void
 }>()
 
-// function getUserImgUrl(userImg: string) {
-//   return new URL(`../assets/images/avatars/image-${userImg}.jpg`, import.meta.url).href
-// }
+function getUserImgUrl(username: string) {
+  return new URL(`../assets/images/avatars/image-${username}.png`, import.meta.url).href
+}
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const newComment = ref<string>('');
@@ -98,7 +96,7 @@ const sendComment = () => {
     ></textarea>
     <div class="flex items-center justify-between gap-x-4 w-full">
       <img
-          :src="currentUser.image.png"
+          :src="getUserImgUrl(currentUser.username)"
           :alt="`${currentUser.username} avatar`"
           class="size-8 md:size-10 rounded-full object-cover"
       />

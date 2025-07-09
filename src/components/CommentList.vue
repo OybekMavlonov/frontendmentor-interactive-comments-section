@@ -47,8 +47,8 @@ const loadFromStorage = <T>(key: string, defaultValue: T): T => {
 
 loadComments()
 
-function addComment(comment: Comment) {
-  commentList.value.push(comment)
+function addComment(comment: Comment | Reply) {
+  commentList.value.push(comment as Comment)
 }
 
 function addReply(id: number, reply: Reply) {

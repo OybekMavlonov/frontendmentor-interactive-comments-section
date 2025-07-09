@@ -42,7 +42,9 @@ const handleDeleteCancel = () => {
 }
 
 const handleReplyToReply = (reply: Reply) => {
-  addReplyToReply(props.commentId, reply)
+  if (addReplyToReply) {
+    addReplyToReply(props.commentId, reply)
+  }
   showReplyForm.value = false
 }
 
@@ -67,7 +69,9 @@ const editReply = () => {
   if (content.startsWith(`@${props.reply.replyingTo} `)) {
     content = content.replace(`@${props.reply.replyingTo} `, '').trim();
   }
-  updateReply(props.commentId, props.reply.id, content)
+  if (updateReply) {
+    updateReply(props.commentId, props.reply.id, content);
+  }
   isEditing.value = false
 };
 </script>
@@ -86,14 +90,14 @@ const editReply = () => {
             <div class="flex items-center gap-3">
               <h3 class="font-semibold text-grey-800">{{ reply.user.username }}</h3>
               <span
-                  v-if="reply.user.username === currentUser.username"
+                  v-if="currentUser && reply.user.username === currentUser.username"
                   class="bg-purple-600 text-white text-xs p-1 md:px-2 rounded"
               >you</span>
               <span class="text-sm text-grey-500">{{ reply.createdAt }}</span>
             </div>
           </div>
           <div class="hidden md:flex items-center gap-4">
-            <template v-if="reply.user.username === currentUser.username">
+            <template v-if="currentUser && reply.user.username === currentUser.username">
               <button
                   @click="showDeleteModal = true"
                   :disabled="isEditing"
@@ -180,7 +184,7 @@ const editReply = () => {
           </button>
         </div>
         <div class="md:hidden flex items-center gap-2 md:gap-4 text-sm" :class="{'hidden md:inline-block': isEditing}">
-          <template v-if="reply.user.username === currentUser.username">
+          <template v-if="currentUser && reply.user.username === currentUser.username">
             <button
                 @click="showDeleteModal = true"
                 :disabled="isEditing"
